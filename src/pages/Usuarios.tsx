@@ -38,6 +38,7 @@ export default function Usuarios() {
   const [tipoFilter, setTipoFilter] = useState<string>('all');
   const [avatars, setAvatars] = useState<Record<number, string>>({});
   const [selectedLojaId, setSelectedLojaId] = useState<number | null>(null);
+  const [lojaInfo, setLojaInfo] = useState<{ numero: string; nome: string } | null>(null);
 
   // Verificar se o usuário pode ver todas as lojas
   const canViewAllStores = user?.tipo && ['admin', 'supervisor', 'compras'].includes(user.tipo);
@@ -46,6 +47,7 @@ export default function Usuarios() {
   useEffect(() => {
     if (user) {
       fetchUsuarios();
+      fetchLojaInfo();
     }
   }, [user, selectedLojaId]);
 
@@ -134,6 +136,24 @@ export default function Usuarios() {
     }
   };
 
+  const fetchLojaInfo = async () => {
+    const currentLojaId = selectedLojaId || user?.loja_id;
+    if (!currentLojaId) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('lojas')
+        .select('numero, nome')
+        .eq('id', currentLojaId)
+        .single();
+
+      if (error) throw error;
+      setLojaInfo(data);
+    } catch (error) {
+      console.error('Erro ao buscar informações da loja:', error);
+    }
+  };
+
   // Show loading while authentication is being checked
   if (authLoading) {
     return (
@@ -196,7 +216,12 @@ export default function Usuarios() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">
-            Usuários {canViewAllStores ? (selectedLojaId ? `da Loja ${selectedLojaId}` : 'de Todas as Lojas') : `da Loja ${user?.loja_id}`}
+            {canViewAllStores ? 
+              (selectedLojaId ? 
+                (lojaInfo ? `Usuários - ${lojaInfo.numero} - ${lojaInfo.nome.toUpperCase()}` : `Usuários da Loja ${selectedLojaId}`) 
+                : 'Usuários de Todas as Lojas') 
+              : (lojaInfo ? `Usuários - ${lojaInfo.numero} - ${lojaInfo.nome.toUpperCase()}` : `Usuários da Loja ${user?.loja_id}`)
+            }
           </h1>
           <p className="text-muted-foreground mt-1">
             Gerencie os colaboradores da loja

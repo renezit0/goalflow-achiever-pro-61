@@ -53,7 +53,7 @@ export default function Vendas() {
   const { selectedPeriod } = usePeriodContext();
   const [vendas, setVendas] = useState<Venda[]>([]);
   const [vendedores, setVendedores] = useState<Vendedor[]>([]);
-  const [lojaInfo, setLojaInfo] = useState<{ regiao: string } | null>(null);
+  const [lojaInfo, setLojaInfo] = useState<{ regiao: string; numero: string; nome: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoriaFilter, setCategoriaFilter] = useState<string>('geral');
@@ -277,7 +277,7 @@ export default function Vendas() {
     try {
       const { data, error } = await supabase
         .from('lojas')
-        .select('regiao')
+        .select('regiao, numero, nome')
         .eq('id', currentLojaId)
         .single();
 
@@ -524,7 +524,12 @@ export default function Vendas() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">
-            {canViewAllStores && !selectedLojaId ? 'Vendas - Todas as Lojas' : `Vendas - Loja ${currentLojaId || user.loja_id}`}
+            {canViewAllStores && !selectedLojaId 
+              ? 'Vendas - Todas as Lojas' 
+              : lojaInfo 
+                ? `Vendas - ${lojaInfo.numero} - ${lojaInfo.nome.toUpperCase()}`
+                : `Vendas - Loja ${currentLojaId || user.loja_id}`
+            }
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">
             Acompanhe as vendas e performance da loja

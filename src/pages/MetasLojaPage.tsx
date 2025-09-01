@@ -31,7 +31,7 @@ export default function MetasLojaPage() {
   const [metas, setMetas] = useState<MetaCategoria[]>([]);
   const [loading, setLoading] = useState(true);
   const [periodoInfo, setPeriodoInfo] = useState<any>(null);
-  const [lojaInfo, setLojaInfo] = useState<{ regiao: string } | null>(null);
+  const [lojaInfo, setLojaInfo] = useState<{ regiao: string; numero: string; nome: string } | null>(null);
   const [selectedLojaId, setSelectedLojaId] = useState<number | null>(null);
 
   // Check if user can view all stores
@@ -52,7 +52,7 @@ export default function MetasLojaPage() {
       // Buscar informações da loja (incluindo região)
       const { data: loja, error: lojaError } = await supabase
         .from('lojas')
-        .select('regiao')
+        .select('regiao, numero, nome')
         .eq('id', currentLojaId!)
         .single();
 
@@ -225,7 +225,12 @@ export default function MetasLojaPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-3">
             <i className="fas fa-bullseye text-primary"></i>
-            Metas da Loja {currentLojaId}
+            {canViewAllStores && !selectedLojaId 
+              ? 'Metas de Todas as Lojas' 
+              : lojaInfo 
+                ? `Metas - ${lojaInfo.numero} - ${lojaInfo.nome.toUpperCase()}`
+                : `Metas da Loja ${currentLojaId}`
+            }
           </h1>
           <p className="text-muted-foreground mt-1">
             Acompanhe o desempenho das metas por categoria
