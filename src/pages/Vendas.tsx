@@ -246,6 +246,7 @@ export default function Vendas() {
         .from('usuarios')
         .select('id, nome')
         .eq('loja_id', currentLojaId!)
+        .eq('status', 'ativo')
         .order('nome');
 
       if (error) throw error;

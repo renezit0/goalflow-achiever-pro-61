@@ -89,8 +89,13 @@ export function StoreSelector({ selectedLojaId, onLojaChange, userLojaId }: Stor
     }
   };
 
-  const handleLojaSelect = (loja: Loja) => {
-    onLojaChange(loja.id === userLojaId ? null : loja.id);
+  const handleLojaSelect = (loja: Loja | null) => {
+    if (loja === null) {
+      // Selecionar "Todas as Lojas"
+      onLojaChange(null);
+    } else {
+      onLojaChange(loja.id === userLojaId ? null : loja.id);
+    }
     setIsOpen(false);
     setSearchTerm('');
   };
@@ -142,13 +147,34 @@ export function StoreSelector({ selectedLojaId, onLojaChange, userLojaId }: Stor
           </div>
 
           <div className="max-h-96 overflow-y-auto">
+            {/* Opção "Todas as Lojas" */}
+            <div className="p-2">
+              <button
+                onClick={() => handleLojaSelect(null)}
+                className={cn(
+                  "w-full text-left px-3 py-2 rounded-md transition-colors hover:bg-accent mb-2",
+                  selectedLojaId === null && !selectedLoja && "bg-primary/10 text-primary font-medium"
+                )}
+              >
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="font-medium">Todas as Lojas</div>
+                    <div className="text-sm text-muted-foreground">Ver dados de todas as lojas</div>
+                  </div>
+                  <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                    Global
+                  </Badge>
+                </div>
+              </button>
+            </div>
+
             {/* Opção "Minha Loja" */}
             <div className="p-2">
               <button
                 onClick={() => handleLojaSelect(lojas.find(l => l.id === userLojaId)!)}
                 className={cn(
                   "w-full text-left px-3 py-2 rounded-md transition-colors hover:bg-accent",
-                  selectedLojaId === null && "bg-primary/10 text-primary font-medium"
+                  selectedLojaId === null && selectedLoja && "bg-primary/10 text-primary font-medium"
                 )}
               >
                 <div className="flex items-center justify-between">
@@ -165,7 +191,7 @@ export function StoreSelector({ selectedLojaId, onLojaChange, userLojaId }: Stor
 
             {/* Separador */}
             <div className="px-3 py-2 text-xs text-muted-foreground font-medium border-b border-border">
-              TODAS AS LOJAS
+              OUTRAS LOJAS
             </div>
 
             {/* Lojas */}
