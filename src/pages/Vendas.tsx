@@ -218,12 +218,13 @@ export default function Vendas() {
     }
   }, [user, initialized]);
 
-  // ✅ Refetch when filters change
+  // ✅ Refetch when filters change (incluindo selectedLojaId para atualizar vendedores)
   useEffect(() => {
     if (user && initialized) {
+      fetchVendedores(); // Atualizar lista de vendedores quando loja mudar
       fetchVendas();
     }
-  }, [selectedPeriod, vendedorFilter, filtroAdicional, user, initialized, currentLojaId]);
+  }, [selectedPeriod, vendedorFilter, filtroAdicional, user, initialized, currentLojaId, selectedLojaId]);
 
   // Quando selecionar um colaborador, mostrar todas as categorias por padrão
   useEffect(() => {
@@ -248,15 +249,18 @@ export default function Vendas() {
         .eq('status', 'ativo')
         .order('nome');
 
-      // Se o usuário pode ver todas as lojas e tem uma loja específica selecionada
-      if (canViewAllStores && selectedLojaId) {
+      // Se há uma loja selecionada no StoreSelector, usar ela
+      if (selectedLojaId) {
         query = query.eq('loja_id', selectedLojaId);
+      }
+      // Se o usuário pode ver todas as lojas mas não tem loja selecionada, mostrar de todas
+      else if (canViewAllStores) {
+        // Não adiciona filtro de loja - mostra vendedores de todas as lojas
       } 
       // Se o usuário não pode ver todas as lojas, filtrar pela sua loja
-      else if (!canViewAllStores) {
+      else {
         query = query.eq('loja_id', user?.loja_id);
       }
-      // Se canViewAllStores é true e selectedLojaId é null, não adiciona filtro de loja (mostra todas)
 
       const { data, error } = await query;
 
