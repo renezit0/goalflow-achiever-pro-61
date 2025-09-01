@@ -96,16 +96,22 @@ export default function Usuarios() {
 
   const fetchUsuarios = async () => {
     try {
-      // Determinar qual loja filtrar
-      const lojaToFilter = canViewAllStores && selectedLojaId 
-        ? selectedLojaId 
-        : user?.loja_id;
-
-      const { data, error } = await supabase
+      let query = supabase
         .from('usuarios')
         .select('*')
-        .eq('loja_id', lojaToFilter) // Filtrar pela loja selecionada ou loja do usuário
         .order('nome');
+
+      // Se o usuário pode ver todas as lojas e tem uma loja específica selecionada
+      if (canViewAllStores && selectedLojaId) {
+        query = query.eq('loja_id', selectedLojaId);
+      } 
+      // Se o usuário não pode ver todas as lojas, filtrar pela sua loja
+      else if (!canViewAllStores) {
+        query = query.eq('loja_id', user?.loja_id);
+      }
+      // Se canViewAllStores é true e selectedLojaId é null, não adiciona filtro de loja (mostra todas)
+
+      const { data, error } = await query;
 
       if (error) throw error;
       
@@ -190,7 +196,7 @@ export default function Usuarios() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground">
-            Usuários da Loja {canViewAllStores && selectedLojaId ? selectedLojaId : user?.loja_id}
+            Usuários {canViewAllStores ? (selectedLojaId ? `da Loja ${selectedLojaId}` : 'de Todas as Lojas') : `da Loja ${user?.loja_id}`}
           </h1>
           <p className="text-muted-foreground mt-1">
             Gerencie os colaboradores da loja

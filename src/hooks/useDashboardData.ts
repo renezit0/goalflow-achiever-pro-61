@@ -40,6 +40,7 @@ export function useDashboardData(user: User | null, selectedPeriod?: PeriodOptio
       return;
     }
 
+    // Usar selectedLojaId se fornecido, senão usar loja do usuário
     const currentLojaId = selectedLojaId || user.loja_id;
 
     const fetchDashboardData = async () => {

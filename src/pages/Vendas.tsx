@@ -242,12 +242,23 @@ export default function Vendas() {
 
   const fetchVendedores = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('usuarios')
         .select('id, nome')
-        .eq('loja_id', currentLojaId!)
         .eq('status', 'ativo')
         .order('nome');
+
+      // Se o usuário pode ver todas as lojas e tem uma loja específica selecionada
+      if (canViewAllStores && selectedLojaId) {
+        query = query.eq('loja_id', selectedLojaId);
+      } 
+      // Se o usuário não pode ver todas as lojas, filtrar pela sua loja
+      else if (!canViewAllStores) {
+        query = query.eq('loja_id', user?.loja_id);
+      }
+      // Se canViewAllStores é true e selectedLojaId é null, não adiciona filtro de loja (mostra todas)
+
+      const { data, error } = await query;
 
       if (error) throw error;
       setVendedores(data || []);
@@ -257,11 +268,13 @@ export default function Vendas() {
   };
 
   const fetchLojaInfo = async () => {
+    if (!currentLojaId) return;
+    
     try {
       const { data, error } = await supabase
         .from('lojas')
         .select('regiao')
-        .eq('id', currentLojaId!)
+        .eq('id', currentLojaId)
         .single();
 
       if (error) throw error;
@@ -290,11 +303,19 @@ export default function Vendas() {
           .order('data_venda', { ascending: false });
       } else {
         // Buscar dados consolidados na tabela 'vendas_loja'
-        query = supabase
-          .from('vendas_loja')
-          .select('*')
-          .eq('loja_id', currentLojaId!)
-          .order('data_venda', { ascending: false });
+        // Se não há loja selecionada e o usuário pode ver todas, buscar de todas as lojas
+        if (!selectedLojaId && canViewAllStores) {
+          query = supabase
+            .from('vendas_loja')
+            .select('*')
+            .order('data_venda', { ascending: false });
+        } else {
+          query = supabase
+            .from('vendas_loja')
+            .select('*')
+            .eq('loja_id', currentLojaId!)
+            .order('data_venda', { ascending: false });
+        }
       }
 
       // Filtro por período selecionado ou filtros adicionais
@@ -373,12 +394,21 @@ export default function Vendas() {
         }
       } else {
         // Visão geral da loja usa tabela consolidada 'vendas_loja'
-        query = supabase
-          .from('vendas_loja')
-          .select('*')
-          .eq('loja_id', currentLojaId!)
-          .gte('data_venda', format(inicioMes, 'yyyy-MM-dd'))
-          .lte('data_venda', format(hoje, 'yyyy-MM-dd'));
+        // Se não há loja selecionada e o usuário pode ver todas, buscar de todas as lojas
+        if (!selectedLojaId && canViewAllStores) {
+          query = supabase
+            .from('vendas_loja')
+            .select('*')
+            .gte('data_venda', format(inicioMes, 'yyyy-MM-dd'))
+            .lte('data_venda', format(hoje, 'yyyy-MM-dd'));
+        } else {
+          query = supabase
+            .from('vendas_loja')
+            .select('*')
+            .eq('loja_id', currentLojaId!)
+            .gte('data_venda', format(inicioMes, 'yyyy-MM-dd'))
+            .lte('data_venda', format(hoje, 'yyyy-MM-dd'));
+        }
 
         if (chartCategoriaFilter && chartCategoriaFilter !== 'all' && chartCategoriaFilter !== 'multi') {
           if (chartCategoriaFilter === 'generico_similar') {
