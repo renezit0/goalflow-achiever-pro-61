@@ -524,7 +524,7 @@ export default function Vendas() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">
-            Vendas - Loja {currentLojaId || user.loja_id}
+            {canViewAllStores && !selectedLojaId ? 'Vendas - Todas as Lojas' : `Vendas - Loja ${currentLojaId || user.loja_id}`}
           </h1>
           <p className="text-muted-foreground mt-1 text-sm">
             Acompanhe as vendas e performance da loja
